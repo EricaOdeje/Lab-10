@@ -5,15 +5,15 @@ const port = 4000
 {/* CORS stands for Cross-Origin Resource Sharing. It allows us to relax the security applied to an API. 
 This is done by bypassing the Access-Control-Allow-Origin headers, 
 which specify which origins can access the API.*/}
-const cors = require('cors');
-app.use(cors());
-app.use(function(req, res, next) {
-res.header("Access-Control-Allow-Origin", "*");
-res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-res.header("Access-Control-Allow-Headers",
-"Origin, X-Requested-With, Content-Type, Accept");
-next();
-});
+// const cors = require('cors');
+// app.use(cors());
+// app.use(function(req, res, next) {
+// res.header("Access-Control-Allow-Origin", "*");
+// res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+// res.header("Access-Control-Allow-Headers",
+// "Origin, X-Requested-With, Content-Type, Accept");
+// next();
+// });
 
 {/* Here we are configuring express to use body-parser as middle-ware. 
 The body-parser extracts the entire body portion of an incoming request stream and exposes it on req.body. */}
@@ -41,6 +41,12 @@ const bookSchema = new mongoose.Schema({
 
 {/* I use the Schema to construct a database model */}
 const bookModel = mongoose.model('books' ,bookSchema);
+
+{/* Add just under import section at the top of server,js. Serve the static files from the React app */}
+
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../build')));
+app.use('/static', express.static(path.join(__dirname, 'build//static')));
 
 //Put comment here
 app.delete('/api/books/:id', async (req, res)=>{
@@ -87,12 +93,18 @@ app.get('/api/books/:id' ,async(req,res)=>{
   res.send(book);
 })
 
-//Put comment here
 app.put('/api/book/:identifier', async(req, res) =>{
   console.log("Edit: "+req.params.identifier)
   let book = await bookModel.findByIdAndUpdate(req.params.identifier,req.body,{new:true});
   res.send(book);
 }) 
+
+{/* add at the bottom just over app.listen. Handles any requests that don't match the ones above */}
+
+{/* Every url serves index.html file from the build directory when the url is accessed. */}
+app.get('*', (req,res) =>{
+  res.sendFile(path.join(__dirname+'/../build/index.html'));
+  });
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
